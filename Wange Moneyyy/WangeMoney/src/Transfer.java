@@ -8,15 +8,72 @@
  *
  * @author alda
  */
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import javax.swing.JOptionPane;
 public class Transfer extends javax.swing.JFrame {
-
+    Connection con = null;
+    Statement st = null;
+    ResultSet rs = null;
+    int id = 0;
+    String no;
     /**
      * Creates new form Transfer
      */
     public Transfer() {
         initComponents();
     }
-
+     private void hapuslayar(){
+        txtnorek.setText("");
+        txtnominal.setText("");
+        txtusername.setText("");
+    }
+      private void transfer(){
+        String nomor_rekening = txtnorek.getText();
+        String jumlah_uang = txtnominal.getText();
+        try{
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://localhost/wangemoney", "root", "");
+            st = con.createStatement();
+            if(nomor_rekening != null && jumlah_uang != null){
+                String sql = ("Select * from databaseusertransfer");
+                rs = st.executeQuery(sql);
+                while(rs.next()){
+                    id++;
+                }
+                id++;
+                no = Integer.toString(id);
+                
+                String sqll = ("Select saldo from transaksi where username ='" + txtusername.getText() + "'");
+                ResultSet hasil = st.executeQuery(sqll);
+                hasil.last();
+                int saldo = hasil.getInt("saldo");
+                if(saldo > Integer.valueOf(txtnominal.getText())){
+                int saldo2 = saldo - Integer.valueOf(txtnominal.getText());
+                String saldo3 = String.valueOf(saldo2);
+                
+                 st.executeUpdate("update transaksi set saldo='" + saldo3 + "' where username='" + txtusername.getText() + "'");
+                 
+                  String simpan = "INSERT INTO databaseuser  VALUES ('" + no + "', '" + txtusername + "', '" + nomor_rekening + "','" + jumlah_uang + "')";
+                  st.executeUpdate(simpan);
+                  JOptionPane.showMessageDialog(null, "Transaksi Anda berhasil");
+                  this.dispose();
+                  new Home().setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Saldo Anda Tidak cukup, Mohon lakukan pengisian saldo");
+                    this.dispose();
+                    new Home().setVisible(true);
+                }
+            }
+        }
+        catch(Exception e){
+            hapuslayar();
+             JOptionPane.showMessageDialog(this, "Ada Kesalahan Jaringan. Harap melakukan Transaksi ulang","Pesan",
+                    JOptionPane.WARNING_MESSAGE);
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -29,11 +86,10 @@ public class Transfer extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
+        txtusername = new javax.swing.JTextField();
+        txtnorek = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
-        jCheckBox1 = new javax.swing.JCheckBox();
+        txtnominal = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -41,22 +97,25 @@ public class Transfer extends javax.swing.JFrame {
         jLabel1.setFont(new java.awt.Font("Times New Roman", 1, 24)); // NOI18N
         jLabel1.setText("TRANSFER");
 
-        jLabel2.setText("Rekening Tujuan  :");
+        jLabel2.setText("Nomor Rekening  :");
 
         jLabel3.setText("Nominal Transfer  :");
 
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
+        txtnorek.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
+                txtnorekActionPerformed(evt);
             }
         });
 
-        jLabel4.setText("Security Code      :");
-
-        jCheckBox1.setText("Tambahkan ke favorite");
+        jLabel4.setText("Username            :");
 
         jButton1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jButton1.setText("Transfer");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -72,21 +131,18 @@ public class Transfer extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addGap(18, 18, 18)
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel4)
-                                .addGap(18, 18, 18)
-                                .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap(22, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel2)
-                                .addGap(18, 18, 18)
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jCheckBox1))
+                                .addGap(19, 19, 19)
+                                .addComponent(txtnorek, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel3)
+                                .addGap(15, 15, 15)
+                                .addComponent(txtnominal, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap(24, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addGap(20, 20, 20)
+                        .addComponent(txtusername, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))))
             .addGroup(layout.createSequentialGroup()
                 .addGap(165, 165, 165)
@@ -100,19 +156,17 @@ public class Transfer extends javax.swing.JFrame {
                 .addComponent(jLabel1)
                 .addGap(39, 39, 39)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(26, 26, 26)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(26, 26, 26)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtusername, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4))
-                .addGap(18, 18, 18)
-                .addComponent(jCheckBox1)
-                .addGap(18, 18, 18)
+                .addGap(26, 26, 26)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtnorek, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addGap(26, 26, 26)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtnominal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
+                .addGap(59, 59, 59)
                 .addComponent(jButton1)
                 .addContainerGap(26, Short.MAX_VALUE))
         );
@@ -120,9 +174,13 @@ public class Transfer extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
+    private void txtnorekActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtnorekActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField2ActionPerformed
+    }//GEN-LAST:event_txtnorekActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+       transfer();
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -161,13 +219,12 @@ public class Transfer extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
-    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
+    private javax.swing.JTextField txtnominal;
+    private javax.swing.JTextField txtnorek;
+    private javax.swing.JTextField txtusername;
     // End of variables declaration//GEN-END:variables
 }

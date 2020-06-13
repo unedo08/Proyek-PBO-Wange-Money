@@ -8,15 +8,74 @@
  *
  * @author alda
  */
-public class Bayar extends javax.swing.JFrame {
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import javax.swing.JOptionPane;
 
+public class Bayar extends javax.swing.JFrame {
+    Connection con = null;
+    Statement st = null;
+    int no = 0;
+    String id;
+    ResultSet rs;
     /**
      * Creates new form Bayar
      */
     public Bayar() {
         initComponents();
     }
-
+    private void hapuslayar(){
+        txtjlh_uang.setText("");
+        txtkode_pembayaran.setText("");
+        txtusername.setText("");
+    }
+    
+    private void bayar(){
+        String kode_pembayaran = txtkode_pembayaran.getText();
+        String jumlah = txtjlh_uang.getText();
+        try{
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://localhost/wangemoney", "root", "");
+            st = con.createStatement();
+            if(kode_pembayaran != null && jumlah != null){
+                String sql = ("Select * from databaseuser");
+                rs = st.executeQuery(sql);
+                while(rs.next()){
+                    no++;
+                }
+                no++;
+                id = Integer.toString(no);
+                
+                String sqll = ("Select saldo from transaksi where username ='" + txtusername.getText() + "'");
+                ResultSet hasil = st.executeQuery(sqll);
+                hasil.last();
+                int saldo = hasil.getInt("saldo");
+                if(saldo > Integer.valueOf(txtjlh_uang.getText())){
+                int saldo2 = saldo - Integer.valueOf(txtjlh_uang.getText());
+                String saldo3 = String.valueOf(saldo2);
+                
+                 st.executeUpdate("update transaksi set saldo='" + saldo3 + "' where username='" + txtusername.getText() + "'");
+                 
+                  String simpan = "INSERT INTO databaseuser  VALUES ('" + id + "', '" + txtusername.getText() + "','"  + kode_pembayaran + "', '" + jumlah + "')";
+                  st.executeUpdate(simpan);
+                  JOptionPane.showMessageDialog(null, "Transaksi Anda berhasil");
+                  this.dispose();
+                  new Home().setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Saldo Anda Tidak cukup, Mohon lakukan pengisian saldo");
+                    this.dispose();
+                    new Home().setVisible(true);
+                }
+            }
+        }
+        catch(Exception e){
+            hapuslayar();
+             JOptionPane.showMessageDialog(this, "Ada Kesalahan Jaringan. Harap melakukan Transaksi ulang","Pesan",
+                    JOptionPane.WARNING_MESSAGE);
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,12 +85,17 @@ public class Bayar extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel3 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        txtkode_pembayaran = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        txtjlh_uang = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
+        txtusername = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+
+        jLabel3.setText("jLabel3");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -41,25 +105,33 @@ public class Bayar extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel2.setText("Kode Pembayaran :");
 
-        jTextField1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        txtkode_pembayaran.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        txtkode_pembayaran.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                txtkode_pembayaranActionPerformed(evt);
             }
         });
 
         jLabel4.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel4.setText("Nominal              :");
 
-        jTextField2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
+        txtjlh_uang.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        txtjlh_uang.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
+                txtjlh_uangActionPerformed(evt);
             }
         });
 
         jButton2.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jButton2.setText("Bayar");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel5.setText("Username            :");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -76,45 +148,57 @@ public class Bayar extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel4)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(txtjlh_uang, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel5))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(39, Short.MAX_VALUE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(txtusername)
+                                    .addComponent(txtkode_pembayaran, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))))))
+                .addContainerGap(37, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
                 .addComponent(jButton2)
-                .addGap(157, 157, 157))
+                .addGap(162, 162, 162))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addGap(31, 31, 31)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4))
-                .addGap(44, 44, 44)
+                    .addComponent(txtusername, javax.swing.GroupLayout.DEFAULT_SIZE, 29, Short.MAX_VALUE)
+                    .addComponent(jLabel5))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(txtkode_pembayaran, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel4)
+                    .addComponent(txtjlh_uang, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(50, 50, 50)
                 .addComponent(jButton2)
-                .addContainerGap(195, Short.MAX_VALUE))
+                .addGap(37, 37, 37))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+    private void txtkode_pembayaranActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtkode_pembayaranActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    }//GEN-LAST:event_txtkode_pembayaranActionPerformed
 
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
+    private void txtjlh_uangActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtjlh_uangActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField2ActionPerformed
+    }//GEN-LAST:event_txtjlh_uangActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        bayar();
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -155,8 +239,11 @@ public class Bayar extends javax.swing.JFrame {
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JTextField txtjlh_uang;
+    private javax.swing.JTextField txtkode_pembayaran;
+    private javax.swing.JTextField txtusername;
     // End of variables declaration//GEN-END:variables
 }

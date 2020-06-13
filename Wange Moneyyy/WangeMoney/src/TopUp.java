@@ -51,6 +51,7 @@ public class TopUp extends javax.swing.JFrame {
                 int saldo2 = saldo1 + Integer.valueOf(txtsaldo.getText());
                 String saldo3 = String.valueOf(saldo2);
                 st.executeUpdate("update transaksi set saldo='" + saldo3 + "' where username='" + txtusername.getText() + "'");
+                
                 JOptionPane.showMessageDialog(null, "Transaksi Anda Berhasil");   
                 this.dispose();
                 new Home().setVisible(true);
